@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte TR - Opcion 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #F9FAFB; color: #111827; }
+        .item { padding: 16px; border-bottom: 1px solid #E5E7EB; display: flex; align-items: flex-start; gap: 12px; }
+        .item:hover { background-color: #F3F4F6; }
+        .cb { width: 1.5rem; height: 1.5rem; accent-color: #10B981; margin-top: 2px; }
+    </style>
+</head>
+<body class="min-h-screen flex p-4 md:p-10 justify-center">
+
+    <main class="w-full max-w-3xl bg-white shadow-xl rounded-xl border border-gray-200 overflow-hidden">
+        
+        <header class="bg-gray-50 p-6 md:p-8 flex justify-between items-center border-b border-gray-200">
+            <div>
+                <p class="text-blue-600 font-medium mb-1">Verificaciones Diarias</p>
+                <h1 class="text-3xl font-bold">Reporte a Enzo</h1>
+            </div>
+            <button onclick="exportToClipboard()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium shadow">Exportar</button>
+        </header>
+
+        <div>
+            <!-- Section 1 -->
+            <div class="bg-gray-100 p-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Sistemas</div>
+            
+            <label class="item cursor-pointer">
+                <input type="checkbox" class="cb cb-task" data-n="Chatbot PRD Arriba (y API)">
+                <div>
+                    <p class="font-medium">Chatbot en Producción</p>
+                    <p class="text-sm text-gray-500">Verificar acceso web y respuesta de API con usuario Test.</p>
+                </div>
+            </label>
+            <label class="item cursor-pointer">
+                <input type="checkbox" class="cb cb-task" data-n="Chatbot QA Arriba (y API)">
+                <div>
+                    <p class="font-medium">Chatbot en QA</p>
+                    <p class="text-sm text-gray-500">Verificar acceso en Tria y respuesta de API con usuario Test.</p>
+                </div>
+            </label>
+            <label class="item cursor-pointer">
+                <input type="checkbox" class="cb cb-task" data-n="Indicadores Diarios">
+                <div>
+                    <p class="font-medium">Indicadores Económicos</p>
+                    <p class="text-sm text-gray-500">Revisar carga diaria de indicadores.</p>
+                </div>
+            </label>
+            <label class="item cursor-pointer">
+                <input type="checkbox" class="cb cb-task" data-n="LOES OK">
+                <div>
+                    <p class="font-medium">LOES Diario & Uso</p>
+                    <p class="text-sm text-gray-500">Carga del día sin cortes, días anteriores cargados.</p>
+                </div>
+            </label>
+
+            <!-- Section 2 -->
+            <div class="bg-gray-100 p-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Colas y Migraciones</div>
+            
+            <div class="p-5 border-b border-gray-200">
+                <p class="font-medium mb-2">Jurisprudencia Administrativa (Docs en cola)</p>
+                <input type="number" id="jadDocs" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Cantidad...">
+            </div>
+            
+            <div class="p-5 border-b border-gray-200 bg-orange-50/50">
+                <p class="font-medium mb-3 text-orange-800">Migración Fallos (Lunes)</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <label class="flex items-center gap-2"><input type="checkbox" class="cb-task w-5 h-5 accent-orange-500" data-n="Migración TC"> TC</label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="cb-task w-5 h-5 accent-orange-500" data-n="Migración Lab"> Laboral '26</label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="cb-task w-5 h-5 accent-orange-500" data-n="Migración Pen"> Penal '26</label>
+                </div>
+            </div>
+
+            <!-- Section 3 -->
+            <div class="bg-gray-100 p-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Avance Proyectos</div>
+            
+            <div class="p-5 border-b border-gray-200 focus-within:bg-blue-50 transition-colors">
+                <label class="font-medium block mb-2">Fallos Loader (JOL API)</label>
+                <textarea id="projLoader" rows="2" class="w-full border border-gray-300 rounded p-2" placeholder="Progreso hoy..."></textarea>
+            </div>
+            <div class="p-5 focus-within:bg-blue-50 transition-colors">
+                <label class="font-medium block mb-2">Tria (Descarga Excel)</label>
+                <textarea id="projTria" rows="2" class="w-full border border-gray-300 rounded p-2" placeholder="Progreso hoy..."></textarea>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        function exportToClipboard() {
+            let text = `📅 *Reporte Diario - ${new Date().toLocaleDateString('es-ES')}*\n\n`;
+            text += `*SISTEMAS*\n`;
+            document.querySelectorAll('.cb-task').forEach(cb => {
+                text += `${cb.checked ? '✅' : '❌'} ${cb.dataset.n}\n`;
+            });
+
+            text += `\n*JURISPRUDENCIA ADMIN.*\n`;
+            const docs = document.getElementById('jadDocs').value;
+            text += `Documentos en cola (PDF -> HTML): ${docs || '0'}\n`;
+
+            text += `\n*AVANCE PROYECTOS*\n`;
+            text += `🚀 *Fallos Loader (JOL)* \n${document.getElementById('projLoader').value || 'Sin avances'}\n\n`;
+            text += `🚀 *TRIA (Excel)* \n${document.getElementById('projTria').value || 'Sin avances'}\n`;
+
+            navigator.clipboard.writeText(text);
+            alert('¡Reporte copiado con éxito!');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte TR - Opcion 1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0B0F19; color: #E2E8F0; font-family: sans-serif; }
+        .card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
+        .cb { accent-color: #0ea5e9; width: 1.2rem; height: 1.2rem; }
+    </style>
+</head>
+<body class="p-8 max-w-5xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-blue-400">Reporte Diario TR</h1>
+        <button onclick="exportReport()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded">📄 Exportar Reporte</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Sistemas -->
+        <div class="card space-y-3">
+            <h2 class="text-xl font-bold text-white border-b border-slate-700 pb-2">Verificaciones</h2>
+            <label class="flex items-center gap-3"><input type="checkbox" class="cb ex" data-k="Chatbot PRD"> Chatbot en Producción</label>
+            <label class="flex items-center gap-3"><input type="checkbox" class="cb ex" data-k="Chatbot QA"> Chatbot en QA</label>
+            <label class="flex items-center gap-3"><input type="checkbox" class="cb ex" data-k="Indicadores"> Indicadores Económicos</label>
+            <label class="flex items-center gap-3"><input type="checkbox" class="cb ex" data-k="LOES"> LOES (Estado y Uso)</label>
+            <label class="flex items-center gap-3"><input type="checkbox" class="cb ex" data-k="Migraciones"> Migraciones Lunes (TC/Lab/Penal)</label>
+        </div>
+
+        <!-- Inputs y Proyectos -->
+        <div class="space-y-6">
+            <div class="card">
+                <h2 class="text-xl font-bold text-white border-b border-slate-700 pb-2 mb-3">Jurisprudencia Admin.</h2>
+                <label class="block text-sm text-slate-400">Documentos en proceso</label>
+                <input type="number" id="jadDocs" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white">
+            </div>
+            <div class="card">
+                <h2 class="text-xl font-bold text-white border-b border-slate-700 pb-2 mb-3">Proyectos</h2>
+                <label class="block text-sm text-slate-400">Fallos Loader (JOL API)</label>
+                <textarea id="p1" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white mb-3" rows="2"></textarea>
+                <label class="block text-sm text-slate-400">Tria (Excel)</label>
+                <textarea id="p2" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white" rows="2"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function exportReport() {
+            let res = '*Reporte Diario*\n\n';
+            document.querySelectorAll('.ex').forEach(c => res += `- ${c.dataset.k}: ${c.checked?'✅ OK':'❌ Pendiente'}\n`);
+            res += `\n*JAD en cola:* ${document.getElementById('jadDocs').value || '0'}\n`;
+            res += `\n*API JOL:* ${document.getElementById('p1').value}\n`;
+            res += `*Tria:* ${document.getElementById('p2').value}\n`;
+            navigator.clipboard.writeText(res);
+            alert('Copiado al portapapeles!');
+        }
+    </script>
+</body>
+</html>
