@@ -339,15 +339,60 @@
                     <h2 class="text-xl font-display font-semibold text-slate-800 dark:text-orange-50">Avance de Proyectos</h2>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-3">
-                        <label class="block text-sm font-medium text-slate-700 dark:text-orange-100 flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-orange-500"></div> Fallos Loader <span class="text-slate-400 dark:text-orange-200/40 text-xs font-normal">(API carga JOL)</span></label>
-                        <textarea id="inp_proj_loader" rows="3" class="w-full textarea-custom rounded-xl px-4 py-3 placeholder:text-slate-400 dark:placeholder:text-[#52473f] resize-none inp-data" placeholder="¿Qué se avanzó hoy?"></textarea>
-                    </div>
-                    <div class="space-y-3">
-                        <label class="block text-sm font-medium text-slate-700 dark:text-orange-100 flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div> Tria <span class="text-slate-400 dark:text-orange-200/40 text-xs font-normal">(Descarga excel 30 días)</span></label>
-                        <textarea id="inp_proj_tria" rows="3" class="w-full textarea-custom rounded-xl px-4 py-3 placeholder:text-slate-400 dark:placeholder:text-[#52473f] resize-none inp-data" placeholder="¿Qué se avanzó hoy?"></textarea>
-                    </div>
+                    <button onclick="openBoard('proj_loader', 'Fallos Loader (JOL)')" class="w-full relative overflow-hidden group p-6 rounded-2xl bg-white dark:bg-[#1a1511] border border-slate-200 dark:border-[#29211b] hover:border-orange-500 dark:hover:border-orange-500 transition-all flex flex-col items-center justify-center gap-3 shadow-sm hover:shadow-orange-500/20">
+                        <i data-lucide="trello" class="w-8 h-8 text-orange-500"></i>
+                        <span class="font-semibold text-slate-800 dark:text-orange-50 text-lg">Tablero Fallos Loader</span>
+                    </button>
+                    <button onclick="openBoard('proj_tria', 'Tria (Excel)')" class="w-full relative overflow-hidden group p-6 rounded-2xl bg-white dark:bg-[#1a1511] border border-slate-200 dark:border-[#29211b] hover:border-amber-500 dark:hover:border-amber-500 transition-all flex flex-col items-center justify-center gap-3 shadow-sm hover:shadow-amber-500/20">
+                        <i data-lucide="trello" class="w-8 h-8 text-amber-500"></i>
+                        <span class="font-semibold text-slate-800 dark:text-orange-50 text-lg">Tablero Tria</span>
+                    </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================= -->
+    <!-- VISTA: TABLERO JIRA -->
+    <!-- ======================= -->
+    <div id="boardView" class="hidden animate-[fadeIn_0.3s_ease-out] w-full max-w-7xl mx-auto mt-4 px-4 overflow-x-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+               <button onclick="closeBoard()" class="text-slate-500 dark:text-orange-200/50 hover:text-orange-600 dark:hover:text-orange-500 transition-colors mb-2 inline-flex items-center gap-1 text-sm font-medium"><i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Reporte</button>
+               <h2 id="boardTitle" class="text-3xl font-display font-bold text-slate-800 dark:text-orange-50">Tablero</h2>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+               <button onclick="openEpicModal()" class="px-4 py-2 bg-white dark:bg-[#1a1511] border border-slate-200 dark:border-[#29211b] rounded-xl text-sm font-semibold text-slate-700 dark:text-orange-100 hover:border-orange-500 transition-colors shadow-sm">Nueva Épica</button>
+               <button onclick="openTaskModal()" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 dark:hover:bg-orange-400 text-white dark:text-[#1a1511] rounded-xl text-sm font-semibold transition-colors shadow-[0_4px_15px_rgba(249,115,22,0.3)]">Nueva Tarea</button>
+               <button onclick="saveBoard()" id="btnSaveBoard" class="hidden ml-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm"><i data-lucide="save" class="w-4 h-4 inline mr-1"></i>Guardar Cambios</button>
+            </div>
+        </div>
+
+        <!-- Kanban Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 overflow-x-auto pb-4 items-start" id="kanbanGrid">
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modalContainer" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
+        <!-- Dialog Epica -->
+        <div id="dialogEpic" class="hidden bg-white dark:bg-[#14110e] border border-slate-200 dark:border-[#29211b] rounded-2xl p-6 w-full max-w-md shadow-2xl animate-[fadeIn_0.2s_ease-out]">
+            <h3 class="text-xl font-display font-bold text-slate-800 dark:text-orange-50 mb-4">Nueva Épica</h3>
+            <input type="text" id="inpEpicName" class="w-full textarea-custom rounded-xl px-4 py-3 mb-5 font-medium" placeholder="Nombre de la épica...">
+            <div class="flex justify-end gap-3">
+                <button onclick="closeModals()" class="px-4 py-2 font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-[#29211b] rounded-xl transition-colors">Cancelar</button>
+                <button onclick="createEpic()" class="px-4 py-2 bg-slate-800 dark:bg-orange-500 hover:bg-black dark:hover:bg-orange-400 text-white font-semibold rounded-xl transition-colors">Agregar Épica</button>
+            </div>
+        </div>
+        <!-- Dialog Tarea -->
+        <div id="dialogTask" class="hidden bg-white dark:bg-[#14110e] border border-slate-200 dark:border-[#29211b] rounded-2xl p-6 w-full max-w-md shadow-2xl animate-[fadeIn_0.2s_ease-out]">
+            <h3 class="text-xl font-display font-bold text-slate-800 dark:text-orange-50 mb-4">Nueva Tarea</h3>
+            <select id="selEpic" class="w-full textarea-custom rounded-xl px-4 py-3 mb-4 appearance-none font-medium cursor-pointer">
+            </select>
+            <textarea id="inpTaskName" class="w-full textarea-custom rounded-xl px-4 py-3 mb-5 resize-none font-medium" rows="3" placeholder="Descripción de la tarea..."></textarea>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeModals()" class="px-4 py-2 font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-[#29211b] rounded-xl transition-colors">Cancelar</button>
+                <button onclick="createTask()" class="px-4 py-2 bg-orange-500 hover:bg-orange-400 text-white dark:text-[#1a1511] font-semibold rounded-xl transition-colors">Agregar Tarea</button>
             </div>
         </div>
     </div>
@@ -410,7 +455,20 @@
         // UI State
         let currentDateStr = "";
         let currentView = "editor"; 
-        let availableDates = new Set(); 
+        let availableDates = new Set();
+        
+        // Board State
+        let currentBoardId = null;
+        let boardData = { epics: [], tasks: [] };
+        let hasUnsavedBoardChanges = false;
+        
+        const KANBAN_STATES = [
+            {id: 'por_hacer', name: 'Por Hacer', bgLight: 'bg-slate-100', bgDark: 'dark:bg-[#1a1511]', border: 'border-slate-200 dark:border-[#29211b]'},
+            {id: 'haciendo', name: 'Haciendo', bgLight: 'bg-amber-50', bgDark: 'dark:bg-amber-900/10', border: 'border-amber-200 dark:border-amber-900/30'},
+            {id: 'hecho', name: 'Hecho', bgLight: 'bg-emerald-50', bgDark: 'dark:bg-emerald-900/10', border: 'border-emerald-200 dark:border-emerald-900/30'},
+            {id: 'probado', name: 'Probado', bgLight: 'bg-blue-50', bgDark: 'dark:bg-blue-900/10', border: 'border-blue-200 dark:border-blue-900/30'},
+            {id: 'produccion', name: 'En Producción', bgLight: 'bg-purple-50', bgDark: 'dark:bg-purple-900/10', border: 'border-purple-200 dark:border-purple-900/30'}
+        ];
 
         // UI DOM
         const btnSave = document.getElementById("btnSave");
@@ -517,6 +575,7 @@
             } else {
                 currentView = "editor";
                 viewCalendar.classList.add("hidden");
+                document.getElementById("boardView").classList.add("hidden");
                 viewEditor.classList.remove("hidden");
                 dateSelectorBox.classList.remove("hidden");
                 btnExport.classList.remove("hidden");
@@ -571,8 +630,6 @@
                         el.checked = data.checks[el.id] || false;
                     });
                     document.getElementById("inp_jad_docs").value = data.inputs.jad_docs || "";
-                    document.getElementById("inp_proj_loader").value = data.inputs.proj_loader || "";
-                    document.getElementById("inp_proj_tria").value = data.inputs.proj_tria || "";
 
                     statusBadge.innerHTML = `<i data-lucide="check" class="w-3 h-3 text-orange-500 dark:text-emerald-400"></i> Guardado`;
                     lucide.createIcons();
@@ -605,15 +662,214 @@
             lucide.createIcons();
         };
 
+        // =======================
+        // LÓGICA TABLERO JIRA
+        // =======================
+        window.openBoard = async (boardId, boardName) => {
+            currentView = "board";
+            currentBoardId = boardId;
+            hasUnsavedBoardChanges = false;
+            
+            document.getElementById("appForm").classList.add("hidden");
+            document.getElementById("dateSelectorBox").classList.add("hidden");
+            btnExport.classList.add("hidden");
+            btnSave.classList.add("hidden");
+            btnEdit.classList.add("hidden");
+            document.getElementById("btnToggleView").classList.add("hidden");
+            document.getElementById("calendarView").classList.add("hidden");
+            
+            const boardView = document.getElementById("boardView");
+            boardView.classList.remove("hidden");
+            document.getElementById("boardTitle").textContent = boardName;
+            document.getElementById("btnSaveBoard").classList.add("hidden");
+            
+            statusBadge.classList.remove("hidden");
+            statusBadge.innerHTML = `<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Cargando tablero...`;
+            lucide.createIcons();
+            
+            boardData = { epics: [], tasks: [] };
+            if(isFirebaseActive) {
+                try {
+                    const snap = await getDoc(doc(db, "tablerosProyectos", boardId));
+                    if(snap.exists()) {
+                        boardData = snap.data();
+                        if(!boardData.epics) boardData.epics = [];
+                        if(!boardData.tasks) boardData.tasks = [];
+                    }
+                } catch(e) { console.error("Error fetching board", e); }
+            }
+            
+            statusBadge.classList.add("hidden");
+            renderBoard();
+        };
+
+        window.closeBoard = () => {
+            if(hasUnsavedBoardChanges) {
+                if(!confirm("Tienes cambios sin guardar en el tablero. ¿Deseas salir y perderlos?")) return;
+            }
+            document.getElementById("boardView").classList.add("hidden");
+            document.getElementById("btnToggleView").classList.remove("hidden");
+            currentView = "editor";
+            
+            document.getElementById("appForm").classList.remove("hidden");
+            document.getElementById("dateSelectorBox").classList.remove("hidden");
+            btnExport.classList.remove("hidden");
+            
+            if(!document.getElementById("inp_jad_docs").disabled) {
+                btnSave.classList.remove("hidden");
+            } else {
+                btnEdit.classList.remove("hidden");
+            }
+        };
+
+        window.renderBoard = () => {
+            const grid = document.getElementById("kanbanGrid");
+            grid.innerHTML = "";
+            
+            KANBAN_STATES.forEach(state => {
+                const col = document.createElement("div");
+                col.className = `flex flex-col gap-3 p-4 rounded-xl ${state.bgLight} ${state.bgDark} border ${state.border} min-w-[260px]`;
+                col.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-slate-700 dark:text-orange-50 opacity-90">${state.name}</h3>
+                        <span class="bg-black/5 dark:bg-white/10 text-xs px-2 py-0.5 rounded-full font-bold dark:text-white">${boardData.tasks.filter(t=>t.status===state.id).length}</span>
+                    </div>
+                `;
+                
+                const taskContainer = document.createElement("div");
+                taskContainer.className = "flex flex-col gap-3 min-h-[150px] transition-colors rounded-lg border-2 border-transparent";
+                taskContainer.dataset.status = state.id;
+                
+                taskContainer.addEventListener("dragover", e => {
+                    e.preventDefault();
+                    taskContainer.classList.add("border-orange-500", "border-dashed", "bg-orange-50/50", "dark:bg-orange-500/5");
+                });
+                taskContainer.addEventListener("dragleave", e => {
+                    taskContainer.classList.remove("border-orange-500", "border-dashed", "bg-orange-50/50", "dark:bg-orange-500/5");
+                });
+                taskContainer.addEventListener("drop", e => {
+                    e.preventDefault();
+                    taskContainer.classList.remove("border-orange-500", "border-dashed", "bg-orange-50/50", "dark:bg-orange-500/5");
+                    const taskId = e.dataTransfer.getData("text/plain");
+                    const task = boardData.tasks.find(t => t.id === taskId);
+                    if(task && task.status !== state.id) {
+                        task.status = state.id;
+                        markBoardChanged();
+                        renderBoard();
+                    }
+                });
+
+                boardData.tasks.filter(t => t.status === state.id).forEach(task => {
+                    const epic = boardData.epics.find(e => e.id === task.epicId);
+                    const tEl = document.createElement("div");
+                    tEl.className = "bg-white dark:bg-[#1f1a16] p-4 rounded-xl border border-slate-200 dark:border-[#382f27] shadow-sm cursor-grab active:cursor-grabbing hover:border-orange-500 dark:hover:border-orange-500 transition-all select-none group relative";
+                    tEl.draggable = true;
+                    tEl.addEventListener("dragstart", e => {
+                        e.dataTransfer.setData("text/plain", task.id);
+                        setTimeout(() => tEl.classList.add("opacity-50"), 0);
+                    });
+                    tEl.addEventListener("dragend", () => tEl.classList.remove("opacity-50"));
+                    
+                    tEl.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                           <span class="text-[10px] font-bold text-orange-600 dark:text-orange-500 uppercase tracking-widest bg-orange-100 dark:bg-orange-500/10 px-2 py-0.5 rounded-sm truncate max-w-[80%]">${epic ? epic.title : 'General'}</span>
+                           <button onclick="deleteTask('${task.id}')" class="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                        </div>
+                        <p class="text-sm font-medium text-slate-800 dark:text-orange-50 leading-snug break-words">${task.title}</p>
+                    `;
+                    taskContainer.appendChild(tEl);
+                });
+                
+                col.appendChild(taskContainer);
+                grid.appendChild(col);
+            });
+            lucide.createIcons();
+        };
+
+        window.markBoardChanged = () => {
+            hasUnsavedBoardChanges = true;
+            document.getElementById("btnSaveBoard").classList.remove("hidden");
+        };
+
+        window.saveBoard = async () => {
+            if(!isFirebaseActive) return;
+            const btn = document.getElementById("btnSaveBoard");
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-1"></i> Guardando...`;
+            try {
+                await setDoc(doc(db, "tablerosProyectos", currentBoardId), boardData);
+                hasUnsavedBoardChanges = false;
+                btn.classList.add("hidden");
+                showToast("Tablero Guardado", "Se han guardado los cambios en la nube.");
+            } catch(e) {
+                console.error(e);
+                showToast("Error", "No se pudo guardar el tablero", true);
+            }
+            btn.innerHTML = `<i data-lucide="save" class="w-4 h-4 inline mr-1"></i> Guardar Cambios`;
+            lucide.createIcons();
+        };
+
+        // Modals Logic
+        window.openEpicModal = () => {
+            document.getElementById("modalContainer").classList.remove("hidden");
+            document.getElementById("dialogEpic").classList.remove("hidden");
+            document.getElementById("inpEpicName").focus();
+        };
+        window.openTaskModal = () => {
+            if(boardData.epics.length === 0) {
+                alert("Primero debes crear al menos una Épica.");
+                return;
+            }
+            const sel = document.getElementById("selEpic");
+            sel.innerHTML = '<option value="">-- Selecciona Épica --</option>';
+            boardData.epics.forEach(e => {
+                sel.innerHTML += `<option value="${e.id}">${e.title}</option>`;
+            });
+            document.getElementById("modalContainer").classList.remove("hidden");
+            document.getElementById("dialogTask").classList.remove("hidden");
+            document.getElementById("inpTaskName").focus();
+        };
+        window.closeModals = () => {
+            document.getElementById("modalContainer").classList.add("hidden");
+            document.getElementById("dialogEpic").classList.add("hidden");
+            document.getElementById("dialogTask").classList.add("hidden");
+            document.getElementById("inpEpicName").value = '';
+            document.getElementById("inpTaskName").value = '';
+        };
+        window.createEpic = () => {
+            const val = document.getElementById("inpEpicName").value.trim();
+            if(!val) return;
+            boardData.epics.push({ id: 'epic_' + Date.now(), title: val });
+            markBoardChanged();
+            closeModals();
+        };
+        window.createTask = () => {
+            const epicId = document.getElementById("selEpic").value;
+            const title = document.getElementById("inpTaskName").value.trim();
+            if(!epicId || !title) return;
+            boardData.tasks.push({
+                id: 'task_' + Date.now(),
+                epicId,
+                title,
+                status: 'por_hacer'
+            });
+            markBoardChanged();
+            closeModals();
+            renderBoard();
+        };
+        window.deleteTask = (id) => {
+            if(!confirm("¿Borrar esta tarea permanentemente?")) return;
+            boardData.tasks = boardData.tasks.filter(t => t.id !== id);
+            markBoardChanged();
+            renderBoard();
+        };
+
         window.saveReport = async () => {
             if(!isFirebaseActive) return;
 
             const data = {
                 checks: {},
                 inputs: {
-                    jad_docs: document.getElementById("inp_jad_docs").value,
-                    proj_loader: document.getElementById("inp_proj_loader").value,
-                    proj_tria: document.getElementById("inp_proj_tria").value
+                    jad_docs: document.getElementById("inp_jad_docs").value
                 },
                 updatedAt: new Date().toISOString()
             };
@@ -644,7 +900,7 @@
         };
 
         // Export Function
-        window.exportReport = () => {
+        window.exportReport = async () => {
             let report = `🔥 *Reporte Diario TR*\n🗓️ *Fecha:* ${currentDateStr}\n\n`;
             
             report += "🔧 *VERIFICACIONES DE SISTEMAS*\n";
@@ -668,19 +924,56 @@
 
             const jad = document.getElementById('inp_jad_docs').value;
             report += `\n📄 *JURISPRUDENCIA ADMINISTRATIVA*\n- Documentos en cola de proceso: ${jad || '0'}\n`;
-
-            const loader = document.getElementById('inp_proj_loader').value.trim() || "Sin avance reportado el día de hoy.";
-            const tria = document.getElementById('inp_proj_tria').value.trim() || "Sin avance reportado el día de hoy.";
             
             report += `\n🚀 *AVANCE DE PROYECTOS*\n`;
-            report += `> *Fallos Loader (JOL):*\n  ${loader}\n\n`;
-            report += `> *Tria (Excel últimos 30 días):*\n  ${tria}\n`;
+            
+            const btnExport = document.getElementById("btnExport");
+            btnExport.disabled = true;
+            btnExport.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>`;
+            lucide.createIcons();
+            
+            const boardsToFetch = [
+                {id: 'proj_loader', name: 'Fallos Loader (JOL)'},
+                {id: 'proj_tria', name: 'Tria (Excel)'}
+            ];
+            
+            if(isFirebaseActive) {
+                for(const b of boardsToFetch) {
+                    report += `> *${b.name}:*\n`;
+                    try {
+                        const snap = await getDoc(doc(db, "tablerosProyectos", b.id));
+                        if(snap.exists()) {
+                            const bd = snap.data();
+                            const activeTasks = bd.tasks ? bd.tasks.filter(t => t.status !== 'por_hacer') : [];
+                            if(activeTasks.length === 0) {
+                                report += `  Sin tareas iniciadas en este momento.\n\n`;
+                            } else {
+                                activeTasks.forEach(t => {
+                                    const stateObj = KANBAN_STATES.find(s => s.id === t.status) || {name: t.status};
+                                    report += `  ▪ [${stateObj.name}] ${t.title}\n`;
+                                });
+                                report += `\n`;
+                            }
+                        } else {
+                            report += `  Tablero sin iniciar.\n\n`;
+                        }
+                    } catch(e) {
+                        report += `  (No se pudo conectar al tablero)\n\n`;
+                    }
+                }
+            } else {
+                report += `  Firebase desconectado. Imposible leer tableros.\n`;
+            }
 
             navigator.clipboard.writeText(report).then(() => {
                 showToast("Reporte Copiado", "Listo para pegar en correo o Whatsapp.");
             }).catch(err => {
                 showToast("Error", "Error al copiar: " + err, true);
             });
+            
+            btnExport.disabled = false;
+            btnExport.innerHTML = `<i data-lucide="clipboard-copy" class="w-4 h-4"></i>`;
+            lucide.createIcons();
         };
 
         setTimeout(() => {
