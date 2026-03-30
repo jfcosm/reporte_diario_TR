@@ -22,6 +22,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" id="fpLight">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css" id="fpDark">
     
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
 
@@ -201,10 +204,16 @@
                     <i data-lucide="moon" id="themeIconLight" class="w-5 h-5 block dark:hidden"></i>
                 </button>
 
+                <!-- Botón Navegación Métricas -->
+                <button id="btnToggleAnalytics" onclick="openAnalytics()" class="px-5 py-2.5 font-semibold text-white rounded-xl bg-gradient-to-r from-blue-700 to-indigo-600 dark:from-[#1a1511] dark:to-[#221c17] border border-blue-600 dark:border-[#52473f] hover:border-blue-400 dark:hover:border-blue-500/50 transition-all shadow-md flex items-center gap-2">
+                    <i data-lucide="bar-chart-2" class="w-4 h-4 text-blue-200 dark:text-blue-500"></i>
+                    <span class="hidden sm:inline">Métricas</span>
+                </button>
+
                 <!-- Botón Navegación Principal (Reportes) -->
                 <button id="btnToggleView" onclick="toggleMainView()" class="px-5 py-2.5 font-semibold text-white rounded-xl bg-gradient-to-r from-slate-800 to-slate-700 dark:from-[#29211b] dark:to-[#1a1511] border border-slate-700 dark:border-[#52473f] hover:border-orange-500 dark:hover:border-orange-500/50 transition-all shadow-md flex items-center gap-2">
                     <i data-lucide="calendar-days" id="toggleIcon" class="w-4 h-4 text-orange-400 dark:text-orange-500"></i>
-                    <span id="toggleText">Ver Reportes</span>
+                    <span class="hidden sm:inline" id="toggleText">Ver Reportes</span>
                 </button>
 
                 <!-- Botón Exportar -->
@@ -370,6 +379,56 @@
 
         <!-- Kanban Grid -->
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4 overflow-x-auto pb-4 items-start" id="kanbanGrid">
+        </div>
+    </div>
+
+    <!-- ======================= -->
+    <!-- VISTA: MÉTRICAS Y PANEL -->
+    <!-- ======================= -->
+    <div id="analyticsView" class="hidden animate-[fadeIn_0.3s_ease-out] w-full max-w-7xl mx-auto mt-4 px-4 overflow-x-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+               <button onclick="closeAnalytics()" class="text-slate-500 dark:text-orange-200/50 hover:text-orange-600 dark:hover:text-orange-500 transition-colors mb-2 inline-flex items-center gap-1 text-sm font-medium"><i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Editor</button>
+               <h2 class="text-3xl font-display font-bold text-slate-800 dark:text-orange-50">Panel de Métricas</h2>
+            </div>
+            <div>
+               <button onclick="loadAnalyticsData()" class="px-4 py-2.5 bg-white dark:bg-[#1a1511] border border-slate-200 dark:border-[#29211b] rounded-xl text-sm font-semibold text-slate-700 dark:text-orange-100 hover:border-orange-500 transition-colors shadow-sm flex items-center gap-2">
+                   <i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Gráficos
+               </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+             <!-- Card: Checklist General Performance (Doughnut/Pie) -->
+             <div class="bg-white dark:bg-[#14110e] border border-slate-200 dark:border-[#29211b] shadow-sm rounded-2xl p-6">
+                  <h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-orange-50">Salud de Sistemas (Histórico General)</h3>
+                  <div class="w-full h-[250px] flex justify-center"><canvas id="chartSistemas"></canvas></div>
+             </div>
+             
+             <!-- Card: Evolution over time (Line/Bar) -->
+             <div class="bg-white dark:bg-[#14110e] border border-slate-200 dark:border-[#29211b] shadow-sm rounded-2xl p-6">
+                  <h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-orange-50">Cumplimiento Checklist (Últimos 14 días)</h3>
+                  <div class="w-full h-[250px] flex justify-center"><canvas id="chartTendencia"></canvas></div>
+             </div>
+        </div>
+        
+        <div class="bg-white dark:bg-[#14110e] border border-slate-200 dark:border-[#29211b] shadow-sm rounded-2xl p-6 mb-8">
+             <h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-orange-50 flex items-center gap-2"><i data-lucide="clock" class="w-5 h-5 text-orange-500"></i>Antigüedad y Flujo de Tickets</h3>
+             <div class="overflow-x-auto">
+                 <table class="w-full text-left border-collapse" id="ticketsAgedTable">
+                     <thead>
+                         <tr class="border-b border-slate-200 dark:border-[#29211b] text-sm text-slate-500 dark:text-orange-100/50">
+                             <th class="py-3 px-4 font-semibold whitespace-nowrap">Proyecto</th>
+                             <th class="py-3 px-4 font-semibold w-1/2">Ticket</th>
+                             <th class="py-3 px-4 font-semibold whitespace-nowrap">Estado Actual</th>
+                             <th class="py-3 px-4 font-semibold text-right whitespace-nowrap">Días en Estado</th>
+                         </tr>
+                     </thead>
+                     <tbody class="text-sm font-medium text-slate-700 dark:text-orange-50" id="ticketsTbody">
+                         <!-- JS Injected -->
+                     </tbody>
+                 </table>
+             </div>
         </div>
     </div>
 
@@ -559,6 +618,7 @@
 
             if(currentView === "editor") {
                 currentView = "calendar";
+                document.getElementById("analyticsView").classList.add("hidden");
                 viewEditor.classList.add("hidden");
                 dateSelectorBox.classList.add("hidden");
                 statusBadge.classList.add("hidden");
@@ -576,6 +636,7 @@
                 currentView = "editor";
                 viewCalendar.classList.add("hidden");
                 document.getElementById("boardView").classList.add("hidden");
+                document.getElementById("analyticsView").classList.add("hidden");
                 viewEditor.classList.remove("hidden");
                 dateSelectorBox.classList.remove("hidden");
                 btnExport.classList.remove("hidden");
@@ -677,6 +738,8 @@
             btnEdit.classList.add("hidden");
             document.getElementById("btnToggleView").classList.add("hidden");
             document.getElementById("calendarView").classList.add("hidden");
+            document.getElementById("analyticsView").classList.add("hidden");
+            document.getElementById("btnToggleAnalytics").classList.add("hidden");
             
             const boardView = document.getElementById("boardView");
             boardView.classList.remove("hidden");
@@ -709,6 +772,7 @@
             }
             document.getElementById("boardView").classList.add("hidden");
             document.getElementById("btnToggleView").classList.remove("hidden");
+            document.getElementById("btnToggleAnalytics").classList.remove("hidden");
             currentView = "editor";
             
             document.getElementById("appForm").classList.remove("hidden");
@@ -754,6 +818,7 @@
                     const task = boardData.tasks.find(t => t.id === taskId);
                     if(task && task.status !== state.id) {
                         task.status = state.id;
+                        task.statusUpdatedAt = Date.now();
                         markBoardChanged();
                         renderBoard();
                     }
@@ -850,7 +915,8 @@
                 id: 'task_' + Date.now(),
                 epicId,
                 title,
-                status: 'por_hacer'
+                status: 'por_hacer',
+                statusUpdatedAt: Date.now()
             });
             markBoardChanged();
             closeModals();
@@ -861,6 +927,170 @@
             boardData.tasks = boardData.tasks.filter(t => t.id !== id);
             markBoardChanged();
             renderBoard();
+        };
+
+        // =======================
+        // LÓGICA DE MÉTRICAS
+        // =======================
+        let chartInstanceSistemas = null;
+        let chartInstanceTendencia = null;
+
+        window.openAnalytics = () => {
+            currentView = "analytics";
+            document.getElementById("appForm").classList.add("hidden");
+            document.getElementById("dateSelectorBox").classList.add("hidden");
+            btnExport.classList.add("hidden");
+            btnSave.classList.add("hidden");
+            btnEdit.classList.add("hidden");
+            document.getElementById("btnToggleView").classList.add("hidden");
+            document.getElementById("btnToggleAnalytics").classList.add("hidden");
+            document.getElementById("calendarView").classList.add("hidden");
+            document.getElementById("boardView").classList.add("hidden");
+            
+            document.getElementById("analyticsView").classList.remove("hidden");
+            window.loadAnalyticsData();
+        };
+
+        window.closeAnalytics = () => {
+            document.getElementById("analyticsView").classList.add("hidden");
+            document.getElementById("btnToggleView").classList.remove("hidden");
+            document.getElementById("btnToggleAnalytics").classList.remove("hidden");
+            currentView = "editor";
+            // Return to Editor
+            document.getElementById("appForm").classList.remove("hidden");
+            document.getElementById("dateSelectorBox").classList.remove("hidden");
+            btnExport.classList.remove("hidden");
+            if(!document.getElementById("inp_jad_docs").disabled) {
+                btnSave.classList.remove("hidden");
+            } else {
+                btnEdit.classList.remove("hidden");
+            }
+        };
+
+        window.loadAnalyticsData = async () => {
+            if(!isFirebaseActive) return;
+            statusBadge.classList.remove("hidden");
+            statusBadge.innerHTML = `<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Generando métricas...`;
+            lucide.createIcons();
+            
+            try {
+                // 1. Fetch Reportes (Checklist data)
+                const repSnap = await getDocs(collection(db, "reportesDiarios"));
+                let totalChecksChecked = 0;
+                let totalChecksPossible = 0;
+                let dailyData = [];
+                
+                repSnap.forEach(doc => {
+                    const data = doc.data();
+                    let dailyChecked = 0;
+                    let dailyTotal = 0;
+                    if(data.checks) {
+                        for(let k in data.checks) {
+                            dailyTotal++;
+                            if(data.checks[k]) dailyChecked++;
+                        }
+                    }
+                    totalChecksPossible += dailyTotal;
+                    totalChecksChecked += dailyChecked;
+                    dailyData.push({ date: doc.id, checked: dailyChecked, total: dailyTotal });
+                });
+                
+                // Sort by date
+                dailyData.sort((a,b) => a.date.localeCompare(b.date));
+                const last14 = dailyData.slice(-14);
+
+                // Chart 1: Doughnut
+                const ctxSistemas = document.getElementById('chartSistemas').getContext('2d');
+                if(chartInstanceSistemas) chartInstanceSistemas.destroy();
+                chartInstanceSistemas = new Chart(ctxSistemas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completados ✅', 'Pendientes / Fallos ❌'],
+                        datasets: [{
+                            data: [totalChecksChecked, totalChecksPossible - totalChecksChecked],
+                            backgroundColor: ['#f97316', '#334155'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: document.documentElement.classList.contains('dark') ? '#fdf6e3' : '#1e293b' } } } }
+                });
+
+                // Chart 2: Bar trend
+                 const ctxTrend = document.getElementById('chartTendencia').getContext('2d');
+                if(chartInstanceTendencia) chartInstanceTendencia.destroy();
+                chartInstanceTendencia = new Chart(ctxTrend, {
+                    type: 'bar',
+                    data: {
+                        labels: last14.map(d => d.date.substring(5)), // MM-DD
+                        datasets: [{
+                            label: 'Puntos Verificados Histórico',
+                            data: last14.map(d => d.checked),
+                            backgroundColor: '#fbbf24',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: 'rgba(100,100,100,0.1)' }, ticks: { color: document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#475569'} }, x: { grid: { display: false }, ticks: { color: document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#475569'} } }, plugins: { legend: { display: false } } }
+                });
+
+                // 2. Fetch Board Data (Time in Status)
+                const boardsToFetch = [
+                    {id: 'proj_loader', name: 'Fallos Loader'},
+                    {id: 'proj_tria', name: 'Tria'}
+                ];
+                let allTasks = [];
+                for(const b of boardsToFetch) {
+                    const bSnap = await getDoc(doc(db, "tablerosProyectos", b.id));
+                    if(bSnap.exists()) {
+                        const bd = bSnap.data();
+                        if(bd.tasks) {
+                            bd.tasks.forEach(t => {
+                                allTasks.push({
+                                    project: b.name,
+                                    title: t.title,
+                                    status: t.status,
+                                    updatedAt: t.statusUpdatedAt || Date.now()
+                                });
+                            });
+                        }
+                    }
+                }
+                
+                // Render Table aged tickets
+                const tbody = document.getElementById("ticketsTbody");
+                tbody.innerHTML = "";
+                const now = Date.now();
+                allTasks.forEach(t => {
+                    t.days = Math.floor((now - t.updatedAt) / 86400000);
+                });
+                
+                // Sort by days descending
+                allTasks.sort((a,b) => b.days - a.days);
+                
+                if(allTasks.length === 0) {
+                     tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-500">Sin tickets en el tablero.</td></tr>`;
+                } else {
+                     allTasks.forEach(t => {
+                         const stateObj = KANBAN_STATES.find(s => s.id === t.status) || {name: t.status};
+                         const ageColor = t.days > 7 ? 'text-red-500 font-bold' : (t.days > 3 ? 'text-amber-500 font-semibold' : 'text-slate-500 dark:text-orange-100/50');
+                         const statusColor = t.status === 'hecho' || t.status === 'produccion' || t.status === 'probado' ? 'text-emerald-500' : 'text-slate-700 dark:text-orange-50';
+                         
+                         tbody.innerHTML += `
+                            <tr class="border-b border-slate-100 dark:border-[#29211b] hover:bg-slate-50 dark:hover:bg-[#1a1511]">
+                                <td class="py-3 px-4 flex items-center gap-2 max-w-[120px] truncate" title="${t.project}"><div class="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0"></div>${t.project}</td>
+                                <td class="py-3 px-4 max-w-[200px] md:max-w-xs truncate" title="${t.title}">${t.title}</td>
+                                <td class="py-3 px-4"><span class="px-2 py-1 object-contain rounded bg-slate-100 dark:bg-white/5 text-[11px] font-bold uppercase tracking-wider ${statusColor}">${stateObj.name}</span></td>
+                                <td class="py-3 px-4 text-right ${ageColor} font-medium tracking-tight">${t.days} Día(s)</td>
+                            </tr>
+                         `;
+                     });
+                }
+                
+                statusBadge.classList.add("hidden");
+            } catch(e) {
+                console.error("Error cargando métricas", e);
+                statusBadge.classList.add("hidden");
+                showToast("Error", "Problemas al generar las gráficas.", true);
+            }
         };
 
         window.saveReport = async () => {
