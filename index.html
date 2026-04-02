@@ -520,6 +520,8 @@
         let currentBoardId = null;
         let boardData = { epics: [], tasks: [] };
         let hasUnsavedBoardChanges = false;
+        let editEpicId = null;
+        let editTaskId = null;
         
         const KANBAN_STATES = [
             {id: 'por_hacer', name: 'Por Hacer', bgLight: 'bg-slate-100', bgDark: 'dark:bg-[#1a1511]', border: 'border-slate-200 dark:border-[#29211b]'},
@@ -835,10 +837,17 @@
                     });
                     tEl.addEventListener("dragend", () => tEl.classList.remove("opacity-50"));
                     
+                    const epicBadgeStr = epic 
+                        ? `<span onclick="openEpicModal('${epic.id}')" class="text-[10px] font-bold text-orange-600 dark:text-orange-500 uppercase tracking-widest bg-orange-100 dark:bg-orange-500/10 px-2 py-0.5 rounded-sm truncate max-w-[80%] cursor-pointer hover:underline" title="Editar Épica">${epic.title}</span>` 
+                        : `<span class="text-[10px] font-bold text-orange-600 dark:text-orange-500 uppercase tracking-widest bg-orange-100 dark:bg-orange-500/10 px-2 py-0.5 rounded-sm truncate max-w-[80%]">General</span>`;
+                    
                     tEl.innerHTML = `
                         <div class="flex justify-between items-start mb-2">
-                           <span class="text-[10px] font-bold text-orange-600 dark:text-orange-500 uppercase tracking-widest bg-orange-100 dark:bg-orange-500/10 px-2 py-0.5 rounded-sm truncate max-w-[80%]">${epic ? epic.title : 'General'}</span>
-                           <button onclick="deleteTask('${task.id}')" class="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                           ${epicBadgeStr}
+                           <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                               <button onclick="openTaskModal('${task.id}')" class="text-slate-400 hover:text-orange-500" title="Editar Tarea"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                               <button onclick="deleteTask('${task.id}')" class="text-slate-400 hover:text-red-500" title="Borrar Tarea"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                           </div>
                         </div>
                         <p class="text-sm font-medium text-slate-800 dark:text-orange-50 leading-snug break-words">${task.title}</p>
                     `;
@@ -874,23 +883,52 @@
         };
 
         // Modals Logic
-        window.openEpicModal = () => {
+        window.openEpicModal = (id = null) => {
+            editEpicId = typeof id === 'string' ? id : null;
             document.getElementById("modalContainer").classList.remove("hidden");
             document.getElementById("dialogEpic").classList.remove("hidden");
+            
+            if (editEpicId) {
+                document.querySelector("#dialogEpic h3").innerText = "Editar Épica";
+                document.querySelector("#dialogEpic button:last-child").innerText = "Guardar Cambios";
+                const epic = boardData.epics.find(e => e.id === editEpicId);
+                document.getElementById("inpEpicName").value = epic ? epic.title : "";
+            } else {
+                document.querySelector("#dialogEpic h3").innerText = "Nueva Épica";
+                document.querySelector("#dialogEpic button:last-child").innerText = "Agregar Épica";
+                document.getElementById("inpEpicName").value = "";
+            }
             document.getElementById("inpEpicName").focus();
         };
-        window.openTaskModal = () => {
+        window.openTaskModal = (id = null) => {
             if(boardData.epics.length === 0) {
                 alert("Primero debes crear al menos una Épica.");
                 return;
             }
+            editTaskId = typeof id === 'string' ? id : null;
             const sel = document.getElementById("selEpic");
             sel.innerHTML = '<option value="">-- Selecciona Épica --</option>';
             boardData.epics.forEach(e => {
                 sel.innerHTML += `<option value="${e.id}">${e.title}</option>`;
             });
+            
             document.getElementById("modalContainer").classList.remove("hidden");
             document.getElementById("dialogTask").classList.remove("hidden");
+            
+            if (editTaskId) {
+                document.querySelector("#dialogTask h3").innerText = "Editar Tarea";
+                document.querySelector("#dialogTask button:last-child").innerText = "Guardar Cambios";
+                const task = boardData.tasks.find(t => t.id === editTaskId);
+                if (task) {
+                    sel.value = task.epicId;
+                    document.getElementById("inpTaskName").value = task.title;
+                }
+            } else {
+                document.querySelector("#dialogTask h3").innerText = "Nueva Tarea";
+                document.querySelector("#dialogTask button:last-child").innerText = "Agregar Tarea";
+                sel.value = "";
+                document.getElementById("inpTaskName").value = "";
+            }
             document.getElementById("inpTaskName").focus();
         };
         window.closeModals = () => {
@@ -899,25 +937,41 @@
             document.getElementById("dialogTask").classList.add("hidden");
             document.getElementById("inpEpicName").value = '';
             document.getElementById("inpTaskName").value = '';
+            editEpicId = null;
+            editTaskId = null;
         };
         window.createEpic = () => {
             const val = document.getElementById("inpEpicName").value.trim();
             if(!val) return;
-            boardData.epics.push({ id: 'epic_' + Date.now(), title: val });
+            if (editEpicId) {
+                const epic = boardData.epics.find(e => e.id === editEpicId);
+                if (epic) epic.title = val;
+            } else {
+                boardData.epics.push({ id: 'epic_' + Date.now(), title: val });
+            }
             markBoardChanged();
             closeModals();
+            renderBoard();
         };
         window.createTask = () => {
             const epicId = document.getElementById("selEpic").value;
             const title = document.getElementById("inpTaskName").value.trim();
             if(!epicId || !title) return;
-            boardData.tasks.push({
-                id: 'task_' + Date.now(),
-                epicId,
-                title,
-                status: 'por_hacer',
-                statusUpdatedAt: Date.now()
-            });
+            if (editTaskId) {
+                const task = boardData.tasks.find(t => t.id === editTaskId);
+                if (task) {
+                    task.epicId = epicId;
+                    task.title = title;
+                }
+            } else {
+                boardData.tasks.push({
+                    id: 'task_' + Date.now(),
+                    epicId,
+                    title,
+                    status: 'por_hacer',
+                    statusUpdatedAt: Date.now()
+                });
+            }
             markBoardChanged();
             closeModals();
             renderBoard();
