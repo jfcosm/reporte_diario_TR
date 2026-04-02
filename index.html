@@ -1174,9 +1174,9 @@
                         const snap = await getDoc(doc(db, "tablerosProyectos", b.id));
                         if(snap.exists()) {
                             const bd = snap.data();
-                            const activeTasks = bd.tasks ? bd.tasks.filter(t => t.status !== 'por_hacer') : [];
+                            const activeTasks = bd.tasks ? bd.tasks : [];
                             if(activeTasks.length === 0) {
-                                report += `  Sin tareas iniciadas en este momento.\n\n`;
+                                report += `  Sin tareas registradas en este momento.\n\n`;
                             } else {
                                 activeTasks.forEach(t => {
                                     const stateObj = KANBAN_STATES.find(s => s.id === t.status) || {name: t.status};
