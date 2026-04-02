@@ -348,11 +348,11 @@
                     <h2 class="text-xl font-display font-semibold text-slate-800 dark:text-orange-50">Avance de Proyectos</h2>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <button onclick="openBoard('proj_loader', 'Fallos Loader (JOL)')" class="w-full relative overflow-hidden group p-6 rounded-2xl bg-white dark:bg-[#1a1511] border border-slate-200 dark:border-[#29211b] hover:border-orange-500 dark:hover:border-orange-500 transition-all flex flex-col items-center justify-center gap-3 shadow-sm hover:shadow-orange-500/20">
+                    <button id="btn_proj_loader" onclick="openBoard('proj_loader', 'Fallos Loader (JOL)')" class="w-full relative overflow-hidden group p-6 rounded-2xl bg-white dark:bg-[#1a1511] border border-slate-200 dark:border-[#29211b] hover:border-orange-500 dark:hover:border-orange-500 transition-all flex flex-col items-center justify-center gap-3 shadow-sm hover:shadow-orange-500/20">
                         <i data-lucide="trello" class="w-8 h-8 text-orange-500"></i>
                         <span class="font-semibold text-slate-800 dark:text-orange-50 text-lg">Tablero Fallos Loader</span>
                     </button>
-                    <button onclick="openBoard('proj_tria', 'Tria (Excel)')" class="w-full relative overflow-hidden group p-6 rounded-2xl bg-white dark:bg-[#1a1511] border border-slate-200 dark:border-[#29211b] hover:border-amber-500 dark:hover:border-amber-500 transition-all flex flex-col items-center justify-center gap-3 shadow-sm hover:shadow-amber-500/20">
+                    <button id="btn_proj_tria" onclick="openBoard('proj_tria', 'Tria (Excel)')" class="w-full relative overflow-hidden group p-6 rounded-2xl bg-white dark:bg-[#1a1511] border border-slate-200 dark:border-[#29211b] hover:border-amber-500 dark:hover:border-amber-500 transition-all flex flex-col items-center justify-center gap-3 shadow-sm hover:shadow-amber-500/20">
                         <i data-lucide="trello" class="w-8 h-8 text-amber-500"></i>
                         <span class="font-semibold text-slate-800 dark:text-orange-50 text-lg">Tablero Tria</span>
                     </button>
@@ -368,7 +368,10 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
                <button onclick="closeBoard()" class="text-slate-500 dark:text-orange-200/50 hover:text-orange-600 dark:hover:text-orange-500 transition-colors mb-2 inline-flex items-center gap-1 text-sm font-medium"><i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Reporte</button>
-               <h2 id="boardTitle" class="text-3xl font-display font-bold text-slate-800 dark:text-orange-50">Tablero</h2>
+               <div class="flex items-center gap-3">
+                   <h2 id="boardTitle" class="text-3xl font-display font-bold text-slate-800 dark:text-orange-50">Tablero</h2>
+                   <button onclick="editProjectName()" class="text-slate-400 hover:text-orange-500 transition-colors" title="Editar Nombre del Proyecto"><i data-lucide="edit-3" class="w-5 h-5"></i></button>
+               </div>
             </div>
             <div class="flex flex-wrap items-center gap-3">
                <button onclick="openEpicModal()" class="px-4 py-2 bg-white dark:bg-[#1a1511] border border-slate-200 dark:border-[#29211b] rounded-xl text-sm font-semibold text-slate-700 dark:text-orange-100 hover:border-orange-500 transition-colors shadow-sm">Nueva Épica</button>
@@ -760,6 +763,7 @@
                         boardData = snap.data();
                         if(!boardData.epics) boardData.epics = [];
                         if(!boardData.tasks) boardData.tasks = [];
+                        if(boardData.projectName) boardName = boardData.projectName;
                     }
                 } catch(e) { console.error("Error fetching board", e); }
             }
@@ -768,7 +772,18 @@
             renderBoard();
         };
 
+        window.editProjectName = () => {
+            const currentName = boardData.projectName || document.getElementById("boardTitle").textContent;
+            const newName = prompt("Nuevo nombre del proyecto:", currentName);
+            if(newName && newName.trim() !== "" && newName !== currentName) {
+                boardData.projectName = newName.trim();
+                document.getElementById("boardTitle").textContent = boardData.projectName;
+                markBoardChanged();
+            }
+        };
+
         window.closeBoard = () => {
+            updateDashboardBoardNames();
             if(hasUnsavedBoardChanges) {
                 if(!confirm("Tienes cambios sin guardar en el tablero. ¿Deseas salir y perderlos?")) return;
             }
@@ -1096,10 +1111,11 @@
                     const bSnap = await getDoc(doc(db, "tablerosProyectos", b.id));
                     if(bSnap.exists()) {
                         const bd = bSnap.data();
+                        const pName = bd.projectName || b.name;
                         if(bd.tasks) {
                             bd.tasks.forEach(t => {
                                 allTasks.push({
-                                    project: b.name,
+                                    project: pName,
                                     title: t.title,
                                     status: t.status,
                                     updatedAt: t.statusUpdatedAt || Date.now()
@@ -1223,26 +1239,30 @@
             
             if(isFirebaseActive) {
                 for(const b of boardsToFetch) {
-                    report += `> *${b.name}:*\n`;
+                    let bd = null;
+                    let pName = b.name;
                     try {
                         const snap = await getDoc(doc(db, "tablerosProyectos", b.id));
                         if(snap.exists()) {
-                            const bd = snap.data();
-                            const activeTasks = bd.tasks ? bd.tasks : [];
-                            if(activeTasks.length === 0) {
-                                report += `  Sin tareas registradas en este momento.\n\n`;
-                            } else {
-                                activeTasks.forEach(t => {
-                                    const stateObj = KANBAN_STATES.find(s => s.id === t.status) || {name: t.status};
-                                    report += `  ▪ [${stateObj.name}] ${t.title}\n`;
-                                });
-                                report += `\n`;
-                            }
-                        } else {
-                            report += `  Tablero sin iniciar.\n\n`;
+                            bd = snap.data();
+                            pName = bd.projectName || b.name;
                         }
-                    } catch(e) {
-                        report += `  (No se pudo conectar al tablero)\n\n`;
+                    } catch(e) { console.error("Export error", e); }
+                    
+                    report += `> *${pName}:*\n`;
+                    if(bd) {
+                        const activeTasks = bd.tasks ? bd.tasks : [];
+                        if(activeTasks.length === 0) {
+                            report += `  Sin tareas registradas en este momento.\n\n`;
+                        } else {
+                            activeTasks.forEach(t => {
+                                const stateObj = KANBAN_STATES.find(s => s.id === t.status) || {name: t.status};
+                                report += `  ▪ [${stateObj.name}] ${t.title}\n`;
+                            });
+                            report += `\n`;
+                        }
+                    } else {
+                        report += `  Tablero sin iniciar.\n\n`;
                     }
                 }
             } else {
@@ -1260,9 +1280,29 @@
             lucide.createIcons();
         };
 
+        window.updateDashboardBoardNames = async () => {
+            if(!isFirebaseActive) return;
+            const b1 = document.getElementById("btn_proj_loader");
+            const b2 = document.getElementById("btn_proj_tria");
+            if(b1) {
+                try {
+                   const s = await getDoc(doc(db, "tablerosProyectos", "proj_loader"));
+                   if(s.exists() && s.data().projectName) b1.innerHTML = `<i data-lucide="trello" class="w-8 h-8 text-orange-500"></i><span class="font-semibold text-slate-800 dark:text-orange-50 text-lg">${s.data().projectName}</span>`;
+                } catch(e) {}
+            }
+            if(b2) {
+                try {
+                   const s = await getDoc(doc(db, "tablerosProyectos", "proj_tria"));
+                   if(s.exists() && s.data().projectName) b2.innerHTML = `<i data-lucide="trello" class="w-8 h-8 text-amber-500"></i><span class="font-semibold text-slate-800 dark:text-orange-50 text-lg">${s.data().projectName}</span>`;
+                } catch(e) {}
+            }
+            lucide.createIcons();
+        };
+
         setTimeout(() => {
             if(isFirebaseActive && currentDateStr) {
                loadDataForDate(currentDateStr);
+               updateDashboardBoardNames();
             }
         }, 500);
 
