@@ -1269,11 +1269,27 @@
                 report += `  Firebase desconectado. Imposible leer tableros.\n`;
             }
 
-            navigator.clipboard.writeText(report).then(() => {
-                showToast("Reporte Copiado", "Listo para pegar en correo o Whatsapp.");
-            }).catch(err => {
-                showToast("Error", "Error al copiar: " + err, true);
-            });
+            const htmlReport = report
+                .replace(/\n/g, '<br>')
+                .replace(/\*(.*?)\*/g, '<b>$1</b>');
+
+            try {
+                const textBlob = new Blob([report], { type: 'text/plain' });
+                const htmlBlob = new Blob([htmlReport], { type: 'text/html' });
+                const clipboardItem = new ClipboardItem({
+                    'text/plain': textBlob,
+                    'text/html': htmlBlob
+                });
+                await navigator.clipboard.write([clipboardItem]);
+                showToast("Reporte Copiado", "Copiado con éxito (compatible con Gmail y Whatsapp).");
+            } catch (err) {
+                console.warn("Fallo al copiar HTML, usando fallback de texto", err);
+                navigator.clipboard.writeText(report).then(() => {
+                    showToast("Reporte Copiado", "Listo para pegar en Whatsapp.");
+                }).catch(err2 => {
+                    showToast("Error", "Error al copiar: " + err2, true);
+                });
+            }
             
             btnExport.disabled = false;
             btnExport.innerHTML = `<i data-lucide="clipboard-copy" class="w-4 h-4"></i>`;
